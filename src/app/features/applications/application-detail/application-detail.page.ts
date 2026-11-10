@@ -2,30 +2,67 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  DestroyRef,
   effect,
   inject,
   input,
   signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  AbstractControl,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { RouterLink } from '@angular/router';
+import { MatSelectModule } from '@angular/material/select';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { finalize, Subscription } from 'rxjs';
 
-import { ApplicationDetail } from '../../../core/models/application.model';
+import {
+  ApplicationDetail,
+  BUSINESS_TYPE_LABELS,
+  EDITABLE_STATUSES,
+  REVIEW_DECISIONS,
+  REVIEW_DECISION_LABELS,
+  REVIEWABLE_STATUSES,
+  ReviewDecision,
+  RISK_ACTION_LABELS,
+  RISK_LABELS,
+  RISK_LEVELS,
+  RiskLevel,
+} from '../../../core/models/application.model';
+import { ReviewerOption } from '../../../core/models/user.model';
 import { ApplicationsService } from '../../../core/services/applications.service';
+import { PermissionService } from '../../../core/services/permission.service';
+import { controlError } from '../../../core/utils/form-error';
 import { toErrorMessage } from '../../../core/utils/http-error';
+import { trimmedRequired } from '../../../core/utils/validators';
 import { AppIconComponent } from '../../../shared/components/app-icon/app-icon.component';
 import { RiskBadgeComponent } from '../../../shared/components/risk-badge/risk-badge.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 
+interface RefreshOptions {
+  resetReview?: boolean;
+  resetAssign?: boolean;
+}
+
 @Component({
   selector: 'app-application-detail-page',
   imports: [
+    ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
     MatProgressBarModule,
+    MatSelectModule,
     RouterLink,
     CurrencyPipe,
     DatePipe,
@@ -33,264 +70,405 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
     RiskBadgeComponent,
     StatusBadgeComponent,
   ],
-  template: `
-    <section class="app-page detail-page">
-      <a mat-button routerLink="/dashboard" class="back-link">
-        <app-icon name="arrow-back" [size]="17" />
-        Back to applications
-      </a>
-
-      @if (loading()) {
-        <div class="detail-loading" aria-busy="true">
-          <mat-progress-bar mode="indeterminate" aria-label="Loading application" />
-          <p>Loading application…</p>
-        </div>
-      } @else if (error()) {
-        <mat-card appearance="outlined" class="detail-card error-card">
-          <mat-card-content>
-            <app-icon name="error" [size]="26" />
-            <h1>Unable to load this application</h1>
-            <p>{{ error() }}</p>
-            <div class="error-actions">
-              <button mat-flat-button color="primary" type="button" (click)="retry()">
-                <app-icon name="refresh" [size]="17" />
-                Retry
-              </button>
-              <a mat-stroked-button routerLink="/dashboard">Back to dashboard</a>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      } @else if (application(); as application) {
-        <header class="detail-heading">
-          <div>
-            <p class="eyebrow">{{ application.reference }}</p>
-            <h1 class="page-title">{{ application.business.businessName }}</h1>
-            <p class="page-subtitle">
-              {{ application.business.city }}, {{ application.business.country }} · Owner:
-              {{ application.ownerName }}
-            </p>
-          </div>
-
-          <div class="detail-badges">
-            <app-status-badge [status]="application.status" />
-            <app-risk-badge [riskLevel]="application.riskLevel" />
-          </div>
-        </header>
-
-        <mat-card appearance="outlined" class="detail-card">
-          <mat-card-content>
-            <span class="stub-icon">
-              <app-icon name="assignment" [size]="26" />
-            </span>
-            <h2>Full detail view is the next checkpoint</h2>
-            <p class="stub-copy">
-              Risk history, reviewer controls, sensitive-data reveal, and administrator
-              assignment tools will be added here next.
-            </p>
-
-            <dl class="detail-summary">
-              <div>
-                <dt>Owner</dt>
-                <dd>{{ application.ownerName }}</dd>
-              </div>
-              <div>
-                <dt>Reviewer</dt>
-                <dd>{{ application.assigneeName ?? 'Unassigned' }}</dd>
-              </div>
-              <div>
-                <dt>Monthly volume</dt>
-                <dd>
-                  {{
-                    application.financial.monthlyVolume
-                      | currency: application.financial.currency : 'code' : '1.0-0'
-                  }}
-                </dd>
-              </div>
-              <div>
-                <dt>Last updated</dt>
-                <dd>{{ application.updatedAt | date: 'MMM d, y, h:mm a' }}</dd>
-              </div>
-            </dl>
-          </mat-card-content>
-        </mat-card>
-      }
-    </section>
-  `,
-  styles: `
-    .detail-page {
-      padding-bottom: 2.5rem;
-    }
-
-    .back-link {
-      gap: 0.35rem;
-      margin: 0 0 0.5rem -0.6rem;
-      color: var(--app-muted);
-    }
-
-    .detail-heading {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 1.4rem;
-    }
-
-    .detail-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.45rem;
-      padding-top: 0.35rem;
-    }
-
-    .detail-card {
-      border-radius: var(--app-radius-lg);
-    }
-
-    .detail-card mat-card-content {
-      max-width: 55rem;
-      padding: 2rem;
-    }
-
-    .stub-icon {
-      display: grid;
-      place-items: center;
-      width: 3rem;
-      height: 3rem;
-      margin-bottom: 1rem;
-      border-radius: 0.8rem;
-      background: color-mix(in srgb, var(--app-primary) 10%, transparent);
-      color: var(--app-primary);
-    }
-
-    h2 {
-      margin: 0 0 0.55rem;
-      font-size: 1.15rem;
-    }
-
-    .stub-copy {
-      max-width: 58ch;
-      margin: 0 0 1.5rem;
-      color: var(--app-muted);
-      line-height: 1.65;
-    }
-
-    .detail-summary {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
-      margin: 0;
-      border-top: 1px solid var(--app-border);
-      padding-top: 1.4rem;
-    }
-
-    .detail-summary div {
-      display: grid;
-      gap: 0.25rem;
-    }
-
-    dt {
-      color: var(--app-muted);
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    dd {
-      margin: 0;
-      font-size: 0.87rem;
-      font-weight: 600;
-    }
-
-    .detail-loading {
-      display: grid;
-      gap: 0.9rem;
-      margin-top: 1rem;
-    }
-
-    .detail-loading p {
-      margin: 0;
-      color: var(--app-muted);
-      font-size: 0.85rem;
-    }
-
-    .error-card mat-card-content {
-      display: grid;
-      justify-items: start;
-      color: var(--app-danger);
-    }
-
-    .error-card h1 {
-      margin: 0.75rem 0 0.4rem;
-      font-size: 1.25rem;
-    }
-
-    .error-card p {
-      margin: 0 0 1.2rem;
-      color: var(--app-muted);
-    }
-
-    .error-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.55rem;
-    }
-
-    .error-actions a,
-    .error-actions button {
-      gap: 0.35rem;
-    }
-
-    @media (max-width: 640px) {
-      .detail-card mat-card-content {
-        padding: 1.25rem;
-      }
-
-      .detail-summary {
-        grid-template-columns: 1fr;
-      }
-    }
-  `,
+  templateUrl: './application-detail.page.html',
+  styleUrl: './application-detail.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplicationDetailPage {
+  private readonly route = inject(ActivatedRoute);
   private readonly applications = inject(ApplicationsService);
+  private readonly formBuilder = inject(NonNullableFormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
+  readonly permissions = inject(PermissionService);
   readonly id = input.required<string>();
+
+  readonly businessTypeLabels = BUSINESS_TYPE_LABELS;
+  readonly riskLabels = RISK_LABELS;
+  readonly riskOptions = RISK_LEVELS;
+  readonly decisionOptions = REVIEW_DECISIONS;
+  readonly decisionLabels = REVIEW_DECISION_LABELS;
+  readonly actionLabels = RISK_ACTION_LABELS;
+
+  readonly reviewForm = this.formBuilder.group({
+    decision: this.formBuilder.control<ReviewDecision | ''>('', Validators.required),
+    riskLevel: this.formBuilder.control<RiskLevel>('LOW', Validators.required),
+    notes: [
+      '',
+      [trimmedRequired, Validators.minLength(10), Validators.maxLength(1000)],
+    ],
+  });
+  readonly assignForm = this.formBuilder.group({
+    reviewerId: ['', Validators.required],
+  });
+
   readonly application = signal<ApplicationDetail | null>(null);
   readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
+  readonly loadError = signal<string | null>(null);
+  readonly refreshing = signal(false);
+  readonly revealing = signal(false);
+  readonly reviewing = signal(false);
+  readonly assigning = signal(false);
+  readonly revealed = signal(false);
+  readonly notice = signal<string | null>(null);
+  readonly actionError = signal<string | null>(null);
+  readonly submittedNotice = signal(false);
+  readonly reviewers = signal<ReviewerOption[]>([]);
+  readonly reviewersLoading = signal(false);
+  readonly reviewersError = signal<string | null>(null);
+
+  readonly actionBusy = computed(
+    () =>
+      this.refreshing() ||
+      this.revealing() ||
+      this.reviewing() ||
+      this.assigning(),
+  );
+  readonly canEdit = computed(() => {
+    const application = this.application();
+
+    return (
+      !!application &&
+      this.permissions.canEditApplication(application) &&
+      EDITABLE_STATUSES.includes(application.status)
+    );
+  });
+  readonly canReview = computed(() => {
+    const application = this.application();
+
+    return (
+      !!application &&
+      this.permissions.canReviewApplication(application) &&
+      REVIEWABLE_STATUSES.includes(application.status)
+    );
+  });
+  readonly canAssign = computed(() => {
+    const application = this.application();
+
+    if (!application || !this.permissions.canAssignReviewers()) {
+      return false;
+    }
+
+    return (
+      application.status !== 'DRAFT' &&
+      application.status !== 'APPROVED' &&
+      application.status !== 'REJECTED'
+    );
+  });
+  readonly canReveal = computed(() => {
+    const application = this.application();
+
+    return !!application && this.permissions.canRevealSensitive(application);
+  });
+  readonly sensitiveActionLabel = computed(() =>
+    this.revealed() ? 'Hide sensitive details' : 'Reveal sensitive details',
+  );
+  readonly riskPercent = computed(() => {
+    const application = this.application();
+
+    return application ? Math.min(100, Math.max(0, application.riskScore)) : 0;
+  });
+  readonly timeline = computed(() => {
+    const application = this.application();
+
+    return application ? [...application.riskHistory].reverse() : [];
+  });
+
+  private detailRequest: Subscription | null = null;
+  private reviewersRequest: Subscription | null = null;
 
   constructor() {
     effect(() => {
-      const subscription = this.load(this.id());
+      this.submittedNotice.set(
+        this.route.snapshot.queryParamMap.get('submitted') === '1',
+      );
 
-      return () => subscription.unsubscribe();
+      const request = this.loadInitial(this.id());
+
+      return () => request.unsubscribe();
     });
   }
 
   retry(): void {
-    this.load(this.id());
+    this.loadInitial(this.id());
   }
 
-  private load(applicationId: string): Subscription {
-    this.loading.set(true);
-    this.error.set(null);
-    this.application.set(null);
+  refresh(): void {
+    this.refreshAfterAction(null);
+  }
 
-    return this.applications
+  retryReviewers(): void {
+    this.loadReviewers();
+  }
+
+  toggleSensitive(): void {
+    const application = this.application();
+
+    if (!application || this.revealing()) {
+      return;
+    }
+
+    const reveal = !this.revealed();
+    this.detailRequest?.unsubscribe();
+    this.revealing.set(true);
+    this.actionError.set(null);
+    this.notice.set(null);
+
+    this.detailRequest = this.applications
+      .getApplication(application.id, reveal)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.revealing.set(false)),
+      )
+      .subscribe({
+        next: (detail) => {
+          this.application.set(detail);
+          this.revealed.set(reveal);
+          this.notice.set(
+            reveal
+              ? 'Sensitive details are now visible for this session.'
+              : 'Sensitive details are masked again.',
+          );
+        },
+        error: (error: unknown) => {
+          this.actionError.set(
+            toErrorMessage(
+              error,
+              'Unable to change the visibility of sensitive details.',
+            ),
+          );
+        },
+      });
+  }
+
+  submitReview(): void {
+    const application = this.application();
+
+    if (!application || !this.canReview() || this.reviewing()) {
+      return;
+    }
+
+    this.reviewForm.markAllAsTouched();
+
+    if (this.reviewForm.invalid) {
+      return;
+    }
+
+    const value = this.reviewForm.getRawValue();
+    const decision = value.decision;
+
+    if (!decision) {
+      return;
+    }
+
+    this.reviewing.set(true);
+    this.actionError.set(null);
+    this.notice.set(null);
+
+    this.applications
+      .reviewApplication(application.id, {
+        decision,
+        riskLevel: value.riskLevel,
+        notes: value.notes.trim(),
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.reviewing.set(false)))
+      .subscribe({
+        next: () => {
+          this.refreshAfterAction(this.reviewMessage(decision), {
+            resetReview: true,
+          });
+        },
+        error: (error: unknown) => {
+          this.actionError.set(
+            toErrorMessage(error, 'Unable to record this review decision.'),
+          );
+        },
+      });
+  }
+
+  submitAssignment(): void {
+    const application = this.application();
+
+    if (!application || !this.canAssign() || this.assigning()) {
+      return;
+    }
+
+    this.assignForm.markAllAsTouched();
+
+    if (this.assignForm.invalid) {
+      return;
+    }
+
+    const reviewerId = this.assignForm.controls.reviewerId.value;
+    const reviewer = this.reviewers().find((option) => option.id === reviewerId);
+
+    this.assigning.set(true);
+    this.actionError.set(null);
+    this.notice.set(null);
+
+    this.applications
+      .assignApplication(application.id, { reviewerId })
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.assigning.set(false)))
+      .subscribe({
+        next: () => {
+          this.refreshAfterAction(
+            `${reviewer?.name ?? 'Reviewer'} is now assigned to this application.`,
+            { resetAssign: true },
+          );
+        },
+        error: (error: unknown) => {
+          this.actionError.set(
+            toErrorMessage(error, 'Unable to assign this reviewer.'),
+          );
+        },
+      });
+  }
+
+  error(control: AbstractControl | null): string | null {
+    return controlError(control);
+  }
+
+  dismissNotice(): void {
+    this.notice.set(null);
+  }
+
+  dismissActionError(): void {
+    this.actionError.set(null);
+  }
+
+  dismissSubmittedNotice(): void {
+    this.submittedNotice.set(false);
+  }
+
+  private loadInitial(applicationId: string): Subscription {
+    this.detailRequest?.unsubscribe();
+    this.loading.set(true);
+    this.loadError.set(null);
+    this.actionError.set(null);
+    this.notice.set(null);
+    this.application.set(null);
+    this.revealed.set(false);
+
+    this.detailRequest = this.applications
       .getApplication(applicationId)
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loading.set(false)),
+      )
       .subscribe({
         next: (application) => {
           this.application.set(application);
+          this.syncForms(application);
+
+          if (this.permissions.canAssignReviewers()) {
+            this.loadReviewers();
+          }
         },
         error: (error: unknown) => {
-          this.error.set(
+          this.loadError.set(
             toErrorMessage(error, 'Unable to load this application. Please try again.'),
           );
         },
       });
+
+    return this.detailRequest;
+  }
+
+  private refreshAfterAction(
+    message: string | null,
+    options: RefreshOptions = {},
+  ): void {
+    const application = this.application();
+
+    if (!application || this.refreshing()) {
+      return;
+    }
+
+    this.detailRequest?.unsubscribe();
+    this.refreshing.set(true);
+    this.actionError.set(null);
+    this.notice.set(message);
+
+    this.detailRequest = this.applications
+      .getApplication(application.id, this.revealed())
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.refreshing.set(false)),
+      )
+      .subscribe({
+        next: (detail) => {
+          this.application.set(detail);
+
+          if (options.resetReview) {
+            this.syncReviewForm(detail);
+          }
+
+          if (options.resetAssign) {
+            this.syncAssignForm(detail);
+          }
+
+          if (this.permissions.canAssignReviewers()) {
+            this.loadReviewers();
+          }
+        },
+        error: (error: unknown) => {
+          this.actionError.set(
+            toErrorMessage(error, 'Unable to refresh this application.'),
+          );
+        },
+      });
+  }
+
+  private loadReviewers(): void {
+    this.reviewersRequest?.unsubscribe();
+    this.reviewersLoading.set(true);
+    this.reviewersError.set(null);
+
+    this.reviewersRequest = this.applications
+      .getReviewers()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.reviewersLoading.set(false)),
+      )
+      .subscribe({
+        next: (reviewers) => {
+          this.reviewers.set(reviewers);
+        },
+        error: (error: unknown) => {
+          this.reviewersError.set(
+            toErrorMessage(error, 'Unable to load the reviewer list.'),
+          );
+        },
+      });
+  }
+
+  private syncForms(application: ApplicationDetail): void {
+    this.syncReviewForm(application);
+    this.syncAssignForm(application);
+  }
+
+  private syncReviewForm(application: ApplicationDetail): void {
+    this.reviewForm.reset({
+      decision: '',
+      riskLevel: application.riskLevel,
+      notes: '',
+    });
+  }
+
+  private syncAssignForm(application: ApplicationDetail): void {
+    this.assignForm.reset({
+      reviewerId: application.assigneeId ?? '',
+    });
+  }
+
+  private reviewMessage(decision: ReviewDecision): string {
+    switch (decision) {
+      case 'APPROVED':
+        return 'Application approved. The decision has been added to the risk history.';
+      case 'REJECTED':
+        return 'Application rejected. The decision has been added to the risk history.';
+      case 'CHANGES_REQUESTED':
+        return 'Changes requested. The merchant can now update and resubmit the application.';
+    }
   }
 }

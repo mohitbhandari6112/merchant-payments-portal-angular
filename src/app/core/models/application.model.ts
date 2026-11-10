@@ -162,6 +162,12 @@ export const APPLICATION_STATUSES: readonly ApplicationStatus[] = [
 
 export const RISK_LEVELS: readonly RiskLevel[] = ['LOW', 'MEDIUM', 'HIGH'];
 
+export const REVIEW_DECISIONS: readonly ReviewDecision[] = [
+  'APPROVED',
+  'REJECTED',
+  'CHANGES_REQUESTED',
+];
+
 export const BUSINESS_TYPES: readonly BusinessType[] = [
   'SOLE_PROPRIETORSHIP',
   'PARTNERSHIP',
@@ -193,6 +199,12 @@ export const RISK_LABELS: Record<RiskLevel, string> = {
   LOW: 'Low risk',
   MEDIUM: 'Medium risk',
   HIGH: 'High risk',
+};
+
+export const REVIEW_DECISION_LABELS: Record<ReviewDecision, string> = {
+  APPROVED: 'Approve application',
+  REJECTED: 'Reject application',
+  CHANGES_REQUESTED: 'Request changes',
 };
 
 export const RISK_ACTION_LABELS: Record<RiskAction, string> = {
