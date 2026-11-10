@@ -119,12 +119,24 @@ export class DashboardPage {
 
   readonly permissions = inject(PermissionService);
   readonly currentUser = this.auth.currentUser;
-  readonly statusOptions = APPLICATION_STATUSES;
-  readonly statusLabels = STATUS_LABELS;
-  readonly riskOptions = RISK_LEVELS;
-  readonly riskLabels = RISK_LABELS;
-  readonly sortOptions = APPLICATION_SORTS;
-  readonly sortLabels = SORT_LABELS;
+  get statusOptions(): typeof APPLICATION_STATUSES {
+    return APPLICATION_STATUSES;
+  }
+  get statusLabels(): typeof STATUS_LABELS {
+    return STATUS_LABELS;
+  }
+  get riskOptions(): typeof RISK_LEVELS {
+    return RISK_LEVELS;
+  }
+  get riskLabels(): typeof RISK_LABELS {
+    return RISK_LABELS;
+  }
+  get sortOptions(): typeof APPLICATION_SORTS {
+    return APPLICATION_SORTS;
+  }
+  get sortLabels(): typeof SORT_LABELS {
+    return SORT_LABELS;
+  }
   readonly pageSizes = [...PAGE_SIZES];
   readonly displayedColumns = [
     'application',

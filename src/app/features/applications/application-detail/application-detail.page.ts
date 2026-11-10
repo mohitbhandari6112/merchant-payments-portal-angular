@@ -83,12 +83,24 @@ export class ApplicationDetailPage {
   readonly permissions = inject(PermissionService);
   readonly id = input.required<string>();
 
-  readonly businessTypeLabels = BUSINESS_TYPE_LABELS;
-  readonly riskLabels = RISK_LABELS;
-  readonly riskOptions = RISK_LEVELS;
-  readonly decisionOptions = REVIEW_DECISIONS;
-  readonly decisionLabels = REVIEW_DECISION_LABELS;
-  readonly actionLabels = RISK_ACTION_LABELS;
+  get businessTypeLabels(): typeof BUSINESS_TYPE_LABELS {
+    return BUSINESS_TYPE_LABELS;
+  }
+  get riskLabels(): typeof RISK_LABELS {
+    return RISK_LABELS;
+  }
+  get riskOptions(): typeof RISK_LEVELS {
+    return RISK_LEVELS;
+  }
+  get decisionOptions(): typeof REVIEW_DECISIONS {
+    return REVIEW_DECISIONS;
+  }
+  get decisionLabels(): typeof REVIEW_DECISION_LABELS {
+    return REVIEW_DECISION_LABELS;
+  }
+  get actionLabels(): typeof RISK_ACTION_LABELS {
+    return RISK_ACTION_LABELS;
+  }
 
   readonly reviewForm = this.formBuilder.group({
     decision: this.formBuilder.control<ReviewDecision | ''>('', Validators.required),

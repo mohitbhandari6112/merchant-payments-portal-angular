@@ -109,10 +109,18 @@ export class NewApplicationPage implements OnInit {
       icon: 'check-circle',
     },
   ];
-  readonly businessTypes = BUSINESS_TYPES;
-  readonly businessTypeLabels = BUSINESS_TYPE_LABELS;
-  readonly currencies = CURRENCIES;
-  readonly currencyLabels = CURRENCY_LABELS;
+  get businessTypes(): typeof BUSINESS_TYPES {
+    return BUSINESS_TYPES;
+  }
+  get businessTypeLabels(): typeof BUSINESS_TYPE_LABELS {
+    return BUSINESS_TYPE_LABELS;
+  }
+  get currencies(): typeof CURRENCIES {
+    return CURRENCIES;
+  }
+  get currencyLabels(): typeof CURRENCY_LABELS {
+    return CURRENCY_LABELS;
+  }
 
   readonly form = this.formBuilder.group({
     business: this.formBuilder.group({
