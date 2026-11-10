@@ -1,1 +1,270 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+        theme-type: light
+      ),
+      typography: (
+        'Segoe UI',
+        system-ui,
+        -apple-system,
+        'Helvetica Neue',
+        Arial,
+        sans-serif
+      ),
+      density: 0
+    )
+  );
+}
+
+:root {
+  --app-navy: #0b1f33;
+  --app-navy-soft: #142f49;
+  --app-primary: var(--mat-sys-primary);
+  --app-primary-dark: color-mix(in srgb, var(--mat-sys-primary) 82%, #000);
+  --app-accent: #168a7c;
+  --app-surface: var(--mat-sys-surface);
+  --app-surface-muted: var(--mat-sys-surface-container-low);
+  --app-surface-raised: var(--mat-sys-surface-container-lowest);
+  --app-border: var(--mat-sys-outline-variant);
+  --app-text: var(--mat-sys-on-surface);
+  --app-muted: var(--mat-sys-on-surface-variant);
+  --app-danger: var(--mat-sys-error);
+  --app-warning: #a26205;
+  --app-success: #146c48;
+  --app-radius: 0.75rem;
+  --app-radius-lg: 1rem;
+  --app-shadow-sm: 0 1px 2px rgb(11 31 51 / 6%);
+  --app-shadow-md: 0 14px 36px rgb(11 31 51 / 9%);
+  --app-ring: 0 0 0 0.22rem rgb(15 92 140 / 18%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 100% 0, rgb(22 138 124 / 6%), transparent 34rem),
+    var(--app-surface-muted);
+  color: var(--app-text);
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--app-navy);
+  letter-spacing: -0.015em;
+}
+
+a {
+  color: var(--app-primary);
+}
+
+a:hover {
+  color: var(--app-primary-dark);
+}
+
+:focus-visible {
+  outline: 0;
+  box-shadow: var(--app-ring);
+}
+
+.app-page {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding: 1.5rem;
+}
+
+.app-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+}
+
+.eyebrow {
+  margin-bottom: 0.35rem;
+  color: var(--app-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.page-title {
+  margin-bottom: 0.35rem;
+  font-size: clamp(1.45rem, 2.1vw, 1.85rem);
+  font-weight: 700;
+}
+
+.page-subtitle {
+  max-width: 62ch;
+  margin-bottom: 0;
+  color: var(--app-muted);
+}
+
+.section-title {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.muted-label {
+  margin-bottom: 0.25rem;
+  color: var(--app-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.field-error {
+  margin-top: 0.25rem;
+  color: var(--app-danger);
+  font-size: 0.8rem;
+}
+
+.error-text {
+  color: var(--app-danger);
+}
+
+.success-text {
+  color: var(--app-success);
+}
+
+.skeleton {
+  display: block;
+  border-radius: 0.35rem;
+  background: linear-gradient(90deg, #eef3f8 25%, #e3eaf2 50%, #eef3f8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.4s ease-in-out infinite;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 2000;
+  border-radius: 0.4rem;
+  background: var(--app-navy);
+  color: #fff;
+  padding: 0.6rem 1rem;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  color: #fff;
+}
+
+.mat-mdc-card {
+  --mat-card-elevated-container-shape: var(--app-radius-lg);
+  border-color: var(--app-border);
+  box-shadow: var(--app-shadow-sm);
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-form-field-subscript-wrapper {
+  min-height: 1.35rem;
+}
+
+.mat-mdc-table {
+  background: transparent;
+}
+
+.mat-mdc-header-row {
+  background: var(--app-surface-muted);
+}
+
+.mat-mdc-header-cell {
+  color: var(--app-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mat-mdc-row:hover {
+  background: color-mix(in srgb, var(--app-primary) 4%, transparent);
+}
+
+.mat-mdc-paginator {
+  background: transparent;
+}
+
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-shape: 0.75rem;
+}
+
+.mat-mdc-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.mat-drawer-container {
+  background: transparent;
+}
+
+.mat-drawer {
+  border-color: var(--app-border);
+}
+
+.mat-toolbar {
+  background: transparent;
+}
+
+@keyframes skeleton-wave {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .app-page {
+    padding: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
