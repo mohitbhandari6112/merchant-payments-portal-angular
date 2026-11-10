@@ -240,6 +240,24 @@ a:hover {
   text-transform: none;
 }
 
+.mdc-button__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.field-prefix {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: 0.45rem;
+  padding-inline-start: 0.55rem;
+  color: var(--app-muted);
+}
+
+.mat-mdc-menu-item > app-icon {
+  margin-inline-end: 0.65rem;
+}
+
 .mat-drawer-container {
   background: transparent;
 }

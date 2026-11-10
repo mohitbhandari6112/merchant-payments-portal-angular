@@ -116,6 +116,7 @@ const ICONS: Record<AppIconName, readonly string[]> = {
     :host {
       display: inline-flex;
       flex: 0 0 auto;
+      vertical-align: middle;
       line-height: 0;
     }
 
