@@ -161,6 +161,24 @@ export const APPLICATION_STATUSES: readonly ApplicationStatus[] = [
 
 export const RISK_LEVELS: readonly RiskLevel[] = ['LOW', 'MEDIUM', 'HIGH'];
 
+export const BUSINESS_TYPES: readonly BusinessType[] = [
+  'SOLE_PROPRIETORSHIP',
+  'PARTNERSHIP',
+  'PRIVATE_LIMITED',
+  'PUBLIC_LIMITED',
+  'NON_PROFIT',
+];
+
+export const CURRENCIES: readonly Currency[] = ['USD', 'EUR', 'GBP', 'NPR', 'INR'];
+
+export const APPLICATION_SORTS: readonly ApplicationSort[] = [
+  'updated-desc',
+  'updated-asc',
+  'created-desc',
+  'business-asc',
+  'reference-asc',
+];
+
 export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   DRAFT: 'Draft',
   SUBMITTED: 'Submitted',

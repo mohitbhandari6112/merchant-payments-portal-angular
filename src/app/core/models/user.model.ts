@@ -19,6 +19,10 @@ export interface AuthSession {
   expiresIn: number;
 }
 
+export interface ReviewerOption extends User {
+  openReviews: number;
+}
+
 export const USER_ROLES: readonly UserRole[] = ['SALES', 'REVIEWER', 'ADMIN'];
 
 export const ROLE_LABELS: Record<UserRole, string> = {

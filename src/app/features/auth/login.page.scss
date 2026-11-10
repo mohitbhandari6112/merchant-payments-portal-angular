@@ -1,0 +1,318 @@
+.login-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(24rem, 30rem);
+  min-height: 100vh;
+}
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  padding: clamp(2.5rem, 6vw, 6rem);
+  background:
+    radial-gradient(circle at 15% 20%, rgb(39 164 148 / 30%), transparent 26rem),
+    radial-gradient(circle at 85% 90%, rgb(37 105 161 / 30%), transparent 30rem),
+    linear-gradient(145deg, #071725, #0b2942 55%, #0a3547);
+  color: #e8f1f8;
+}
+
+.login-brand::after {
+  position: absolute;
+  inset: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 1.5rem;
+  content: '';
+  pointer-events: none;
+}
+
+.brand-mark {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.brand-mark app-icon {
+  display: inline-flex;
+  border-radius: 0.7rem;
+  background: rgb(255 255 255 / 12%);
+  padding: 0.55rem;
+}
+
+.brand-copy {
+  max-width: 34rem;
+}
+
+.eyebrow {
+  color: #5fd1c2;
+}
+
+.brand-copy h1 {
+  max-width: 19ch;
+  margin: 0 0 1.25rem;
+  color: #fff;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.brand-description {
+  max-width: 50ch;
+  margin: 0;
+  color: rgb(232 241 248 / 74%);
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.brand-points {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 34rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.brand-points li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  color: rgb(232 241 248 / 88%);
+  line-height: 1.5;
+}
+
+.brand-points app-icon {
+  margin-top: 0.1rem;
+  color: #5fd1c2;
+}
+
+.brand-footnote {
+  max-width: 42ch;
+  margin: 0;
+  color: rgb(232 241 248 / 48%);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.login-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at 100% 0, rgb(22 138 124 / 8%), transparent 24rem),
+    var(--app-surface-muted);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 27rem;
+  border-radius: 1.25rem;
+  box-shadow: var(--app-shadow-md);
+}
+
+.login-card mat-card-content {
+  padding: 1.75rem;
+}
+
+.login-heading {
+  margin-bottom: 1.5rem;
+}
+
+.login-heading h2 {
+  margin: 0 0 0.55rem;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.login-heading p:last-child {
+  margin: 0;
+  color: var(--app-muted);
+  line-height: 1.55;
+}
+
+.login-error {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  border: 1px solid color-mix(in srgb, var(--app-danger) 35%, transparent);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--app-danger) 7%, transparent);
+  padding: 0.7rem 0.8rem;
+  color: var(--app-danger);
+  font-size: 0.86rem;
+}
+
+form {
+  display: grid;
+  gap: 0.15rem;
+}
+
+form mat-form-field {
+  margin-bottom: 0.35rem;
+}
+
+.field-prefix {
+  display: inline-flex;
+  margin-right: 0.45rem;
+  color: var(--app-muted);
+}
+
+.submit-button {
+  height: 3rem;
+  margin-top: 0.4rem;
+  border-radius: 0.65rem;
+  font-weight: 700;
+}
+
+.submit-button app-icon {
+  margin-left: 0.4rem;
+}
+
+.button-spinner {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.6rem;
+  border: 2px solid rgb(255 255 255 / 35%);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.login-divider {
+  margin: 1.5rem 0 1.25rem;
+}
+
+.demo-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.demo-heading h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.demo-heading span {
+  color: var(--app-muted);
+  font-size: 0.76rem;
+}
+
+.demo-accounts {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.demo-account {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid var(--app-border);
+  border-radius: 0.75rem;
+  background: var(--app-surface);
+  padding: 0.65rem 0.75rem;
+  color: var(--app-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.demo-account:hover {
+  border-color: color-mix(in srgb, var(--app-primary) 45%, var(--app-border));
+  background: color-mix(in srgb, var(--app-primary) 4%, var(--app-surface));
+  transform: translateY(-1px);
+}
+
+.demo-account:focus-visible {
+  outline: 0;
+  box-shadow: var(--app-ring);
+}
+
+.demo-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--app-primary) 12%, transparent);
+  color: var(--app-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.demo-details {
+  display: grid;
+  flex: 1;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.demo-details strong {
+  font-size: 0.83rem;
+}
+
+.demo-details span {
+  overflow: hidden;
+  color: var(--app-muted);
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.demo-account app-icon {
+  color: var(--app-muted);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 960px) {
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .login-brand {
+    gap: 1.5rem;
+    padding: 2.5rem 2rem;
+  }
+
+  .brand-copy h1 {
+    max-width: 24ch;
+    font-size: clamp(1.75rem, 6vw, 2.5rem);
+  }
+
+  .brand-points,
+  .brand-footnote {
+    display: none;
+  }
+
+  .login-panel {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .login-card mat-card-content {
+    padding: 1.25rem;
+  }
+}

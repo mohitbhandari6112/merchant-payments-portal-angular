@@ -1,0 +1,111 @@
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<header class="app-header">
+  <div class="header-inner">
+    <a class="brand" routerLink="/dashboard" (click)="closeMenu()" aria-label="Merchant Payments dashboard">
+      <span class="brand-icon">
+        <app-icon name="shield" [size]="23" />
+      </span>
+      <span class="brand-copy">
+        <strong>Merchant Payments</strong>
+        <span>Operations portal</span>
+      </span>
+    </a>
+
+    <nav class="desktop-nav" aria-label="Primary navigation">
+      @for (item of navigation(); track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          class="nav-link"
+        >
+          <app-icon [name]="item.icon" [size]="18" />
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="header-actions">
+      <button
+        mat-button
+        type="button"
+        class="user-button"
+        [matMenuTriggerFor]="userMenu"
+        aria-label="Open account menu"
+      >
+        <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+        <span class="user-copy">
+          <strong>{{ currentUser()?.name }}</strong>
+          <span>{{ roleLabel() }}</span>
+        </span>
+        <app-icon name="chevron-down" [size]="16" />
+      </button>
+
+      <mat-menu #userMenu="matMenu" xPosition="before" class="account-menu">
+        <div class="menu-account">
+          <span class="avatar" aria-hidden="true">{{ initials() }}</span>
+          <span class="menu-account-copy">
+            <strong>{{ currentUser()?.name }}</strong>
+            <span>{{ currentUser()?.email }}</span>
+            <span class="menu-role">{{ roleLabel() }}</span>
+          </span>
+        </div>
+        <mat-divider />
+        <button mat-menu-item type="button" (click)="logout()">
+          <app-icon name="logout" [size]="18" />
+          <span>Sign out</span>
+        </button>
+      </mat-menu>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="mobile-toggle"
+        [attr.aria-label]="menuOpen() ? 'Close navigation menu' : 'Open navigation menu'"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="mobile-navigation"
+        (click)="toggleMenu()"
+      >
+        <app-icon [name]="menuOpen() ? 'close' : 'menu'" [size]="22" />
+      </button>
+    </div>
+  </div>
+
+  @if (menuOpen()) {
+    <nav id="mobile-navigation" class="mobile-nav" aria-label="Primary navigation">
+      @for (item of navigation(); track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          class="mobile-nav-link"
+          (click)="closeMenu()"
+        >
+          <span class="mobile-nav-icon">
+            <app-icon [name]="item.icon" [size]="19" />
+          </span>
+          <span class="mobile-nav-copy">
+            <strong>{{ item.label }}</strong>
+            <span>{{ item.description }}</span>
+          </span>
+          <app-icon name="arrow-forward" [size]="17" />
+        </a>
+      }
+
+      <button type="button" class="mobile-signout" (click)="logout()">
+        <app-icon name="logout" [size]="18" />
+        Sign out
+      </button>
+    </nav>
+  }
+</header>
+
+<main id="main-content" class="app-main" tabindex="-1">
+  <router-outlet />
+</main>
+
+<footer class="app-footer">
+  <span>Merchant Payments Portal</span>
+  <span>Mock environment · every record is fictional</span>
+</footer>
