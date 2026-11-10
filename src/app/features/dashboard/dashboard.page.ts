@@ -368,6 +368,7 @@ export class DashboardPage {
         next: (result) => {
           this.items.set(result.items);
           this.total.set(result.total);
+          this.clampPage(result.total, result.items.length);
         },
         error: (error: unknown) => {
           this.error.set(
@@ -375,6 +376,20 @@ export class DashboardPage {
           );
         },
       });
+  }
+
+  private clampPage(total: number, itemCount: number): void {
+    if (total === 0 || itemCount > 0 || this.page() <= 1) {
+      return;
+    }
+
+    const lastPage = Math.max(1, Math.ceil(total / this.pageSize()));
+
+    if (this.page() > lastPage) {
+      this.page.set(lastPage);
+      this.syncUrl();
+      this.loadApplications();
+    }
   }
 
   private loadStats(): void {

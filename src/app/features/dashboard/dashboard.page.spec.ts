@@ -217,6 +217,35 @@ describe('DashboardPage', () => {
     );
   });
 
+  it('recovers when a requested page is beyond the result set', async () => {
+    const stub = createStub();
+
+    stub.getApplications.mockImplementation((query: { page: number; pageSize: number }) =>
+      of({
+        items: query.page > 2 ? [] : ITEMS,
+        total: 18,
+        page: query.page,
+        pageSize: query.pageSize,
+      }),
+    );
+
+    const { fixture } = await setup('SALES', stub);
+    const component = fixture.componentInstance;
+
+    component.onPageChange({
+      pageIndex: 98,
+      pageSize: 10,
+      length: 180,
+      previousPageIndex: 97,
+    } as PageEvent);
+
+    expect(component.page()).toBe(2);
+    expect(component.items()).toHaveLength(2);
+    expect(stub.getApplications).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 2, pageSize: 10 }),
+    );
+  });
+
   it('shows an error banner and recovers after retry', async () => {
     const stub = createStub();
 
