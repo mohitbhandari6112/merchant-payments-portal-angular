@@ -37,6 +37,14 @@ export const routes: Routes = [
             (module) => module.NewApplicationPage,
           ),
       },
+      {
+        path: 'applications/:id',
+        title: 'Application · Merchant Payments Portal',
+        loadComponent: () =>
+          import('./features/applications/application-detail/application-detail.page').then(
+            (module) => module.ApplicationDetailPage,
+          ),
+      },
     ],
   },
   {
