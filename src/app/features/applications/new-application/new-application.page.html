@@ -1,0 +1,652 @@
+<section class="app-page wizard-page" id="wizard-top">
+  <button mat-button type="button" class="back-link" (click)="leaveWizard()" [disabled]="busy()">
+    <app-icon name="arrow-back" [size]="17" />
+    Back to applications
+  </button>
+
+  <header class="wizard-heading">
+    <div class="heading-copy">
+      <p class="eyebrow">Merchant onboarding</p>
+      <h1 class="page-title">{{ pageTitle() }}</h1>
+      <p class="page-subtitle">{{ pageSubtitle() }}</p>
+    </div>
+
+    <div class="heading-meta">
+      @if (reference(); as reference) {
+        <span class="reference-chip">{{ reference }}</span>
+      }
+
+      @if (applicationId()) {
+        <div [class]="'save-state save-' + saveState()" role="status" aria-live="polite">
+          <app-icon
+            [name]="saveIcon()"
+            [size]="16"
+            [class.spin]="saveState() === 'saving'"
+          />
+          <span>{{ saveMessage() }}</span>
+        </div>
+
+        @if (saveState() === 'error') {
+          <button mat-button type="button" class="retry-save" (click)="retrySave()">
+            Retry save
+          </button>
+        }
+      }
+    </div>
+  </header>
+
+  @if (initializing()) {
+    <mat-card appearance="outlined" class="state-card" aria-busy="true">
+      <mat-progress-bar mode="indeterminate" aria-label="Preparing application draft" />
+      <mat-card-content>
+        <span class="state-icon">
+          <app-icon name="edit" [size]="24" />
+        </span>
+        <h2>Preparing your application</h2>
+        <p>Creating a secure draft so your progress is never lost.</p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (initError()) {
+    <mat-card appearance="outlined" class="state-card">
+      <mat-card-content>
+        <span class="state-icon state-icon-error">
+          <app-icon name="error" [size]="24" />
+        </span>
+        <h2>{{ applicationId() ? 'Application locked' : 'Draft could not be created' }}</h2>
+        <p>{{ initError() }}</p>
+        <div class="state-actions">
+          @if (!applicationId()) {
+            <button mat-flat-button color="primary" type="button" (click)="retryInitialization()">
+              <app-icon name="refresh" [size]="17" />
+              Try again
+            </button>
+          }
+          @if (applicationId(); as applicationId) {
+            <a mat-flat-button color="primary" [routerLink]="['/applications', applicationId]">
+              <app-icon name="assignment" [size]="17" />
+              View application
+            </a>
+          }
+          <a mat-stroked-button routerLink="/dashboard">Back to applications</a>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <ol class="step-track" aria-label="Application progress">
+      @for (stepItem of steps; track stepItem.label; let index = $index) {
+        <li
+          [class.current]="index === step()"
+          [class.complete]="index < step()"
+          [class.upcoming]="index > step()"
+        >
+          <button
+            type="button"
+            class="step-button"
+            [disabled]="index > step()"
+            [attr.aria-current]="index === step() ? 'step' : null"
+            (click)="selectStep(index)"
+          >
+            <span class="step-marker">
+              @if (index < step()) {
+                <app-icon name="check" [size]="16" />
+              } @else {
+                {{ index + 1 }}
+              }
+            </span>
+            <span class="step-copy">
+              <strong>{{ stepItem.label }}</strong>
+              <small>{{ stepItem.caption }}</small>
+            </span>
+          </button>
+        </li>
+      }
+    </ol>
+
+    <div class="progress-rail" aria-hidden="true">
+      <span [style.width.%]="progress()"></span>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-alert" role="alert">
+        <app-icon name="warning" [size]="20" />
+        <div class="save-error-copy">
+          <strong>Draft not saved</strong>
+          <span>{{ saveError() }}</span>
+        </div>
+        <button mat-stroked-button type="button" (click)="retrySave()">
+          <app-icon name="refresh" [size]="16" />
+          Try again
+        </button>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      @if (validationNotice()) {
+        <div class="validation-notice" role="alert">
+          <app-icon name="info" [size]="19" />
+          <span>{{ validationNotice() }}</span>
+        </div>
+      }
+
+      @if (step() === 0) {
+        <section class="step-panel app-card" formGroupName="business" aria-labelledby="business-title">
+          <header class="panel-heading">
+            <span class="panel-icon">
+              <app-icon name="business" [size]="22" />
+            </span>
+            <div>
+              <h2 id="business-title">Business details</h2>
+              <p>Tell us about the legal entity behind the merchant account.</p>
+            </div>
+          </header>
+
+          <div class="field-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Business name</mat-label>
+              <input
+                matInput
+                formControlName="businessName"
+                maxlength="120"
+                placeholder="Northwind Traders"
+                autocomplete="organization"
+              />
+              @if (error('business.businessName'); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Registered legal name</mat-label>
+              <input
+                matInput
+                formControlName="legalName"
+                maxlength="140"
+                placeholder="Northwind Traders Ltd."
+              />
+              @if (error('business.legalName'); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Business type</mat-label>
+              <mat-select formControlName="businessType">
+                @for (type of businessTypes; track type) {
+                  <mat-option [value]="type">{{ businessTypeLabels[type] }}</mat-option>
+                }
+              </mat-select>
+              @if (error('business.businessType'); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Registration number</mat-label>
+              <input
+                matInput
+                formControlName="registrationNumber"
+                maxlength="20"
+                placeholder="REG-20481"
+              />
+              @if (error('business.registrationNumber'); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Country</mat-label>
+              <input
+                matInput
+                formControlName="country"
+                maxlength="60"
+                placeholder="United Kingdom"
+                autocomplete="country-name"
+              />
+              @if (error('business.country'); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label>
+              <input
+                matInput
+                formControlName="city"
+                maxlength="80"
+                placeholder="Manchester"
+                autocomplete="address-level2"
+              />
+              @if (error('business.city'); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="field-full">
+              <mat-label>Registered address</mat-label>
+              <input
+                matInput
+                formControlName="address"
+                maxlength="160"
+                placeholder="14 King Street"
+                autocomplete="street-address"
+              />
+              @if (error('business.address'); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Postal code</mat-label>
+              <input
+                matInput
+                formControlName="postalCode"
+                maxlength="10"
+                placeholder="M2 4LQ"
+                autocomplete="postal-code"
+              />
+              @if (error('business.postalCode'); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Website</mat-label>
+              <input
+                matInput
+                formControlName="website"
+                maxlength="140"
+                placeholder="https://northwind.test"
+                autocomplete="url"
+              />
+              <mat-hint>Optional</mat-hint>
+              @if (error('business.website'); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </section>
+      }
+
+      @if (step() === 1) {
+        <section class="step-panel app-card" aria-labelledby="contact-title">
+          <header class="panel-heading">
+            <span class="panel-icon">
+              <app-icon name="person" [size]="22" />
+            </span>
+            <div>
+              <h2 id="contact-title">Contact and finances</h2>
+              <p>Add the day-to-day contact and the expected payment profile.</p>
+            </div>
+          </header>
+
+          <div class="split-grid">
+            <div class="form-section" formGroupName="contact">
+              <h3>Primary contact</h3>
+              <div class="field-stack">
+                <mat-form-field appearance="outline">
+                  <mat-label>Contact name</mat-label>
+                  <input
+                    matInput
+                    formControlName="contactName"
+                    maxlength="100"
+                    placeholder="Avery Morgan"
+                    autocomplete="name"
+                  />
+                  @if (error('contact.contactName'); as message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Contact email</mat-label>
+                  <span matPrefix class="field-prefix">
+                    <app-icon name="email" [size]="18" />
+                  </span>
+                  <input
+                    matInput
+                    type="email"
+                    formControlName="contactEmail"
+                    placeholder="avery@northwind.test"
+                    autocomplete="email"
+                  />
+                  @if (error('contact.contactEmail'); as message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Contact phone</mat-label>
+                  <span matPrefix class="field-prefix">
+                    <app-icon name="phone" [size]="18" />
+                  </span>
+                  <input
+                    matInput
+                    type="tel"
+                    formControlName="contactPhone"
+                    placeholder="+44 20 7946 0812"
+                    autocomplete="tel"
+                  />
+                  @if (error('contact.contactPhone'); as message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="form-section" formGroupName="financial">
+              <h3>Settlement profile</h3>
+              <div class="field-stack">
+                <mat-form-field appearance="outline">
+                  <mat-label>Monthly volume</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="monthlyVolume"
+                    min="1"
+                    step="1"
+                    inputmode="numeric"
+                    placeholder="50000"
+                  />
+                  @if (error('financial.monthlyVolume'); as message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Average ticket</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    formControlName="averageTicket"
+                    min="1"
+                    step="1"
+                    inputmode="numeric"
+                    placeholder="120"
+                  />
+                  @if (error('financial.averageTicket'); as message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Currency</mat-label>
+                  <mat-select formControlName="currency">
+                    @for (currency of currencies; track currency) {
+                      <mat-option [value]="currency">{{ currencyLabels[currency] }}</mat-option>
+                    }
+                  </mat-select>
+                  @if (error('financial.currency'); as message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+
+                @if (financialError(); as message) {
+                  <p class="group-error">{{ message }}</p>
+                }
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Tax ID</mat-label>
+                  <input
+                    matInput
+                    formControlName="taxId"
+                    maxlength="20"
+                    placeholder="GB-482910"
+                  />
+                  @if (error('financial.taxId'); as message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Bank account number</mat-label>
+                  <input
+                    matInput
+                    formControlName="bankAccountNumber"
+                    maxlength="34"
+                    inputmode="numeric"
+                    placeholder="12345678"
+                  />
+                  @if (error('financial.bankAccountNumber'); as message) {
+                    <mat-error>{{ message }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <div class="privacy-note">
+                <app-icon name="lock" [size]="18" />
+                <p>
+                  Tax and bank details are masked by default and only revealed to
+                  authorised users.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      }
+
+      @if (step() === 2) {
+        <section class="step-panel app-card review-panel" aria-labelledby="review-title">
+          <header class="panel-heading">
+            <span class="panel-icon">
+              <app-icon name="check-circle" [size]="22" />
+            </span>
+            <div>
+              <h2 id="review-title">Review and submit</h2>
+              <p>Confirm the details below before sending the application for review.</p>
+            </div>
+          </header>
+
+          <div class="review-grid">
+            <article class="review-block review-business">
+              <header>
+                <h3>Business</h3>
+                <button mat-button type="button" (click)="editStep(0)">
+                  <app-icon name="edit" [size]="15" />
+                  Edit
+                </button>
+              </header>
+              <dl>
+                <div>
+                  <dt>Business name</dt>
+                  <dd>{{ snapshot().business.businessName || '—' }}</dd>
+                </div>
+                <div>
+                  <dt>Legal name</dt>
+                  <dd>{{ snapshot().business.legalName || '—' }}</dd>
+                </div>
+                <div>
+                  <dt>Business type</dt>
+                  <dd>{{ businessTypeLabels[snapshot().business.businessType] }}</dd>
+                </div>
+                <div>
+                  <dt>Registration number</dt>
+                  <dd>{{ snapshot().business.registrationNumber || '—' }}</dd>
+                </div>
+                <div>
+                  <dt>Location</dt>
+                  <dd>
+                    {{ snapshot().business.city || '—' }},
+                    {{ snapshot().business.country || '—' }}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Postal code</dt>
+                  <dd>{{ snapshot().business.postalCode || '—' }}</dd>
+                </div>
+                <div class="review-wide">
+                  <dt>Registered address</dt>
+                  <dd>{{ snapshot().business.address || '—' }}</dd>
+                </div>
+                <div class="review-wide">
+                  <dt>Website</dt>
+                  <dd>{{ snapshot().business.website || 'Not provided' }}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="review-block">
+              <header>
+                <h3>Contact</h3>
+                <button mat-button type="button" (click)="editStep(1)">
+                  <app-icon name="edit" [size]="15" />
+                  Edit
+                </button>
+              </header>
+              <dl>
+                <div>
+                  <dt>Contact name</dt>
+                  <dd>{{ snapshot().contact.contactName || '—' }}</dd>
+                </div>
+                <div>
+                  <dt>Email</dt>
+                  <dd>{{ snapshot().contact.contactEmail || '—' }}</dd>
+                </div>
+                <div>
+                  <dt>Phone</dt>
+                  <dd>{{ snapshot().contact.contactPhone || '—' }}</dd>
+                </div>
+              </dl>
+            </article>
+
+            <article class="review-block">
+              <header>
+                <h3>Finances</h3>
+                <button mat-button type="button" (click)="editStep(1)">
+                  <app-icon name="edit" [size]="15" />
+                  Edit
+                </button>
+              </header>
+              <dl>
+                <div>
+                  <dt>Monthly volume</dt>
+                  <dd>
+                    @if (snapshot().financial.monthlyVolume; as monthlyVolume) {
+                      {{
+                        monthlyVolume
+                          | currency
+                            : snapshot().financial.currency
+                            : 'code'
+                            : '1.0-0'
+                      }}
+                    } @else {
+                      —
+                    }
+                  </dd>
+                </div>
+                <div>
+                  <dt>Average ticket</dt>
+                  <dd>
+                    @if (snapshot().financial.averageTicket; as averageTicket) {
+                      {{
+                        averageTicket
+                          | currency
+                            : snapshot().financial.currency
+                            : 'code'
+                            : '1.0-0'
+                      }}
+                    } @else {
+                      —
+                    }
+                  </dd>
+                </div>
+                <div>
+                  <dt>Currency</dt>
+                  <dd>{{ currencyLabels[snapshot().financial.currency] }}</dd>
+                </div>
+                <div>
+                  <dt>Tax ID</dt>
+                  <dd>{{ snapshot().financial.taxId || '—' }}</dd>
+                </div>
+                <div class="review-wide">
+                  <dt>Bank account</dt>
+                  <dd>{{ snapshot().financial.bankAccountNumber || '—' }}</dd>
+                </div>
+              </dl>
+            </article>
+          </div>
+
+          <div class="review-footer">
+            <div class="privacy-note review-privacy">
+              <app-icon name="shield" [size]="18" />
+              <p>
+                Submitted details are stored with sensitive fields masked by default.
+                Authorised reviewers can reveal them when required.
+              </p>
+            </div>
+
+            <div class="terms-box">
+              <mat-checkbox formControlName="termsAccepted">
+                I confirm that the information provided is accurate and that I am
+                authorised to submit this merchant application.
+              </mat-checkbox>
+              @if (error('termsAccepted'); as message) {
+                <p class="field-error">{{ message }}</p>
+              }
+            </div>
+
+            @if (submitError()) {
+              <div class="submit-error" role="alert">
+                <app-icon name="error" [size]="19" />
+                <span>{{ submitError() }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <footer class="wizard-actions">
+        <div class="secondary-actions">
+          @if (step() > 0) {
+            <button mat-stroked-button type="button" (click)="goBack()" [disabled]="busy()">
+              <app-icon name="arrow-back" [size]="17" />
+              Back
+            </button>
+          }
+          <button
+            mat-button
+            type="button"
+            (click)="saveAndExit()"
+            [disabled]="busy() || !applicationId()"
+          >
+            @if (exiting()) {
+              <app-icon name="refresh" [size]="16" class="spin" />
+              Saving…
+            } @else {
+              Save & exit
+            }
+          </button>
+        </div>
+
+        <div class="primary-actions">
+          @if (step() < steps.length - 1) {
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="goNext()"
+              [disabled]="busy()"
+            >
+              Continue
+              <app-icon name="arrow-forward" [size]="17" />
+            </button>
+          } @else {
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="busy() || !applicationId()"
+            >
+              @if (submitting()) {
+                <app-icon name="refresh" [size]="17" class="spin" />
+                Submitting…
+              } @else {
+                <app-icon name="check" [size]="17" />
+                Submit application
+              }
+            </button>
+          }
+        </div>
+      </footer>
+    </form>
+  }
+</section>

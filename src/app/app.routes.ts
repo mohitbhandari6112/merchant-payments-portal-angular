@@ -38,6 +38,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'applications/:id/edit',
+        title: 'Edit application · Merchant Payments Portal',
+        canActivate: [roleGuard(['SALES', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/applications/new-application/new-application.page').then(
+            (module) => module.NewApplicationPage,
+          ),
+      },
+      {
         path: 'applications/:id',
         title: 'Application · Merchant Payments Portal',
         loadComponent: () =>

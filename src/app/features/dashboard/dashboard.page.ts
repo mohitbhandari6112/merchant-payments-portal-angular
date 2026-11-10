@@ -295,6 +295,10 @@ export class DashboardPage {
     }
 
     if (role === 'ADMIN') {
+      if (EDITABLE_STATUSES.includes(item.status)) {
+        return 'Continue';
+      }
+
       return REVIEWABLE_STATUSES.includes(item.status) ? 'Manage' : 'Open';
     }
 
@@ -312,6 +316,10 @@ export class DashboardPage {
       return 'assignment';
     }
 
+    if (role === 'ADMIN' && EDITABLE_STATUSES.includes(item.status)) {
+      return 'edit';
+    }
+
     if (role === 'ADMIN' && REVIEWABLE_STATUSES.includes(item.status)) {
       return 'shield';
     }
@@ -320,7 +328,13 @@ export class DashboardPage {
   }
 
   openApplication(item: ApplicationSummary): void {
-    void this.router.navigate(['/applications', item.id]);
+    const canContinue = EDITABLE_STATUSES.includes(item.status);
+    const target =
+      canContinue && (this.permissions.role() === 'SALES' || this.permissions.role() === 'ADMIN')
+        ? ['/applications', item.id, 'edit']
+        : ['/applications', item.id];
+
+    void this.router.navigate(target);
   }
 
   private loadApplications(): void {

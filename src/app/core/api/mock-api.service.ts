@@ -825,6 +825,7 @@ export class MockApiService {
       sensitive,
       riskHistory: record.riskHistory,
       reviewerNotes: record.reviewerNotes,
+      termsAccepted: record.termsAccepted,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
       submittedAt: record.submittedAt,

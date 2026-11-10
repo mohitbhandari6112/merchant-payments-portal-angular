@@ -117,6 +117,7 @@ export interface ApplicationDetail {
   sensitive: SensitiveFields;
   riskHistory: RiskEvent[];
   reviewerNotes: string | null;
+  termsAccepted: boolean;
   createdAt: string;
   updatedAt: string;
   submittedAt: string | null;
